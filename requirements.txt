@@ -1,0 +1,11 @@
+aliyun-python-sdk-core
+# duckdb
+requests
+# pandas
+# numpy
+openpyxl
+
+moviepy
+vosk
+ffmpeg
+# ffmpeg-python
