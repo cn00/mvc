@@ -44,32 +44,36 @@ def process_segment(input_video, sentences, output_dir, segment_name):
         "-c:a", "aac",
         final_video_path
     ]
+    print(cmd)
     subprocess.run(cmd, check=True)
     
     # 5. 清理临时字幕文件
     os.remove(srt_path)
 
 def main(json_file, input_video, output_dir):
-    # 解析 JSON 数据
-    with open(json_file, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    # # 解析 JSON 数据
+    # with open(json_file, "r", encoding="utf-8") as f:
+    #     data = json.load(f)
     
     # 创建输出目录
     os.makedirs(output_dir, exist_ok=True)
     
     # 提取段落和句子信息
-    auto_chapters = data["AutoChapters"]
-    translation_paragraphs = data["Translation"]["Paragraphs"]
+    auto_chapters = json.load(open('video/AutoChapters.json'))["AutoChapters"] # data["AutoChapters"]
+    # text_polish = json.load(open('video/TextPolish.json'))["TextPolish"] # data["TextPolish"]
+    # text_polish = {p["ParagraphId"]: p for p in text_polish}
+    translation_paragraphs = json.load(open('video/Translation.json'))["Translation"]["Paragraphs"]
     
     # 按段落处理
     for chapter in auto_chapters:
+        # print(chapter)
         # 匹配对应段落的句子
-        paragraph_id = chapter["ParagraphId"]
-        sentences = next(p["Sentences"] for p in translation_paragraphs if p["ParagraphId"] == paragraph_id)
+        paragraph_id = chapter["Id"]
+        sentences = [s for paragraph in translation_paragraphs for s in paragraph['Sentences'] if s['Start'] >= chapter["Start"] and s['End'] <= chapter["End"]]
         
         # 处理分段
-        segment_name = chapter["Headline"].replace(" ", "_")
+        segment_name = chapter["Headline"].replace(" ", "_").replace("/", "_").replace(":", "_")
         process_segment(input_video, sentences, output_dir, segment_name)
 
 if __name__ == "__main__":
-    main("tingwu_result.json", "input.mp4", "output")
+    main("tingwu_result.json", "/Users/cn/sn/mvc/video/ENTAC_Lundberg-3.mp4", "output")
